@@ -1,0 +1,42 @@
+---
+- name: Install Docker and run a container
+  hosts: docker_server
+  become: yes
+  tasks:
+    - name: Update package index
+      dnf:
+        name: "*"
+        state: latest
+
+    - name: Install Docker
+      dnf:
+        name: docker
+        state: latest
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    - name: Verify Docker installation
+      command: docker --version
+
+    - name: Pull the specified Docker image
+      community.docker.docker_image:
+        name: shivamss98/finhelp
+        source: pull
+
+    - name: Run Docker container from the image
+      community.docker.docker_container:
+        name: finhelpapp
+        image: shivamss98/finhelp
+        state: started
+        ports:
+          - "5100:5100"
